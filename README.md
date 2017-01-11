@@ -107,15 +107,15 @@ For example, you could export the `Briander.subject` pattern in a library and ha
 
 ```elixir
 def ZombieCoder do
- . # use Brainder to search for brains, not love
- . require Brainder
+  # use Brainder to search for brains, not love
+  require Brainder
  
-  .# find and eat juicy brains
-  .def braaaaains() do
-   . .World.population
-    . |> Stream.filter(fn Brainder.subject(iq: iq, lat: lat, lng: lng) where iq > 200 -> {lat, lng} end)
-     .|> Stream.map(&yuuuumi_eaaaat/1)
-   end
+  # find and eat juicy brains
+  def braaaaains() do
+    World.population
+    |> Stream.filter(fn Brainder.subject(iq: iq, lat: lat, lng: lng) where iq > 200 -> {lat, lng} end)
+    |> Stream.map(&yuuuumi_eaaaat/1)
+  end
 end
 ```
 
