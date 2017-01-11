@@ -18,10 +18,10 @@ defmodule Brainder do
         "iq" => iq_a,
         "email" => _,
         "location" => %{
-           "lat" => _, "lng" => _
+           "latitude" => _, "longitude" => _
         }
     }, 
-    subject_b = %{
+    subject_b = %{   # and again, for subject_b
         "iq" => iq_b
         "email" => _,
         "location" => %{
@@ -36,7 +36,7 @@ end
 
 ## Usage
 
-Expat provides a `defpat/1` and `defpatp/1` that will define a pattern macro, thus moving away those patterns into resusable bits (expatriating them from the function head).
+Expat provides a `defpat/1` and `defpatp/1` that will define a pattern macro, thus moving away those patterns into resusable bits (expatriating them from the function head). Allowing you to avoid duplicating patterns, and possibly exporting them (when defined as public with `defpat` for others to use)
 
 ```elixir
 defmodule Brainder do
