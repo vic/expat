@@ -5,11 +5,11 @@ defmodule Expat.Def do
     pattern = pattern |> Macro.escape
     quote do
       unquote(defmacro)(unquote(name)()) do
-        unquote(__MODULE__).pat(unquote(pattern), [], __CALLER__)
+        unquote(pattern)
       end
 
       unquote(defmacro)(unquote(name)({:..., _, _})) do
-        unquote(pattern)
+        unquote(__MODULE__).pat(unquote(pattern), [], __CALLER__)
       end
 
       unquote(defmacro)(unquote(name)(args)) do
@@ -37,8 +37,7 @@ defmodule Expat.Def do
   defp nested(quoted, env) do
     quoted
     |> Macro.prewalk(fn
-      expr = {name, _meta, [{:..., _, x}]} when is_atom(name) and is_atom(x) ->
-        expand(expr, env)
+      expr = {name, _meta, []} when is_atom(name) -> expand(expr, env)
       expr -> expr
     end)
   end

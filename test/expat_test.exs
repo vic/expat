@@ -6,7 +6,7 @@ defmodule Expat.Test do
 
   defpat has_email %{"email" => email}
   defpat has_password %{"password" => password}
-  defpat login has_email(...) = has_password(...)
+  defpat login has_email() = has_password()
 
   test "creates all variables if given empty list" do
     assert has_email() = %{"email" => "foo"}
@@ -22,16 +22,16 @@ defmodule Expat.Test do
     assert "foo" == addr
   end
 
-  test "can combine" do
+  test "can match ignoring all variables" do
     assert login(_) = %{"email" => "foo", "password" => "bar"}
   end
 
-  test "can combine ss" do
+  test "can match with focus on particular var" do
     assert login(password: "bar") = %{"email" => "foo", "password" => "bar"}
   end
 
-  test "can combine sa" do
-    assert login() = %{"email" => "foo", "password" => "bar"}
+  test "can match with all variables" do
+    assert login(...) = %{"email" => "foo", "password" => "bar"}
     assert email == "foo"
     assert password == "bar"
   end

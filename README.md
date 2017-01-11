@@ -47,11 +47,11 @@ defmodule Brainder do
 
   # patterns can be reused inside others
   defpat latlng %{"lat" => lat, "lng" => lng}
-  defpat location %{"location" => latlng(...)}
+  defpat location %{"location" => latlng()}
 
   # *mixing* patterns is done by just using the `=` match operator
   # thus subject is something that has iq, email and a location.
-  defpat subject(iq(...) = email(...) = location(...))
+  defpat subject(iq() = email() = location())
 
   # the function head is more terse now, while still having access to the inner
   # iq on each subject, and ensuring both of them have the same email, location fields
@@ -97,7 +97,7 @@ test "dude is smart", %{dude: dude} do
   assert subject(iq: 200) = dude
 end
 
-test "subject() binds all variables inside it", %{dude: subject()} do
+test "subject(...) binds all variables inside it", %{dude: subject(...)} do
   assert iq > 200
   assert email == "terry.tao@example.com"
 end
