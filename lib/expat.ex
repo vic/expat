@@ -2,16 +2,13 @@ defmodule Expat do
   @moduledoc """
   Define reusable composable patterns.
   """
-
+  
   @doc """
-  ## Examples
-
-      defpat has_email(%{"email" => email})
-      has_email() = %{"email" => "foo@bar.com"}
-
+  Define a pattern
+  
+  For more, look at README and tests.
   """
   @spec defpat(pattern :: any) :: any
-
   defmacro defpat({name, _, [pattern]}) do
     Expat.Def.defpat(:defmacro, name, pattern)
   end
