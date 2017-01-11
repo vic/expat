@@ -51,7 +51,7 @@ defmodule Brainder do
 
   # *mixing* patterns is done by just using the `=` match operator
   # thus subject is something that has iq, email and a location.
-  defpat subject(iq = email = location)
+  defpat subject(iq(...) = email(...) = location(...))
 
   # the function head is more terse now, while still having access to the inner
   # iq on each subject, and ensuring both of them have the same email, location fields
@@ -130,3 +130,4 @@ def deps do
   [{:expat, "~> 0.1"}]
 end
 ```
+ 
