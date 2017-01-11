@@ -36,11 +36,10 @@ end
 
 ## Usage
 
-`Expat` provides a `defpat` (define pattern) macro for moving away those patterns into resusable bits (expatriating them from the function head)
+Expat provides a `defpat/1` and `defpatp/1` that will define a pattern macro, thus moving away those patterns into resusable bits (expatriating them from the function head).
 
 ```elixir
 defmodule Brainder do
-  # provides `defpat` and `defpatp` for defining public and private patterns.
   include Expat
 
   # defpath takes a name and a pattern it will expand to:
@@ -48,10 +47,10 @@ defmodule Brainder do
   defpat email %{"email" => email}
 
   # patterns can be reused inside others
-  defpat latlng %{"lat" => lat, "lng" => lng}
+  defpat latlng %{"latitude" => lat, "longitude" => lng}
   defpat location %{"location" => latlng()}
 
-  # *mixing* patterns is done by just using the `=` match operator
+  # *mixing* patterns is done naturally by using the `=` match operator
   # thus subject is something that has iq, email and a location.
   defpat subject(iq() = email() = location())
 
@@ -66,27 +65,43 @@ defmodule Brainder do
 end
 ```
 
-Notice how `subject(iq: iq_a)` tells expat we only need to extract the value of `iq` from
-the subject, while still matching all of its structure, thus expanding to: 
+Notice how `subject(iq: iq_a)` tells expat we only are interested in the subject's IQ
+and we replace the `iq` variable with another variable `iq_a` inside the subject pattern.
+This way when you explictily state that you are interested in just some variables, all
+other unbound variables will be replaced with `_` placeholders, thus expanding to: 
 
 ```elixir
 %{
   "iq" => iq_a,
   "email" => _,
   "location" => %{
-     "lat" => _, "lng" => _
+     "latitude" => _, "longitude" => _
   }
 }
 ```
 
-Similarly, you can just validate the pattern structure without extracting values with `subject(_)` which expands to:
+`subject(lat: 99.0)` would match all subjects on just that latitude, note that `lat` refers
+to the `lat` *variable* pattern inside "location" (in elixir variables are just unbound patterns, assigned on match).
+And `lat: 99.0` just replaces the `lat` pattern for another pattern: `99.0` a number literal in this case.
 
 ```elixir
 %{
   "iq" => _,
   "email" => _,
   "location" => %{
-     "lat" => _, "lng" => _
+     "latitude" => 99.0, "longitude" => _
+  }
+}
+```
+
+If you want to just check for the structure without binding any variable use `subject(_)` which expands to:
+
+```elixir
+%{
+  "iq" => _,
+  "email" => _,
+  "location" => %{
+     "latitude" => _, "longitude" => _
   }
 }
 ```
@@ -109,7 +124,7 @@ For example, you could export the `Briander.subject` pattern in a library and ha
 
 ```elixir
 def ZombieCoder do
-  # use Brainder to search for brains, not love
+  # use Brainder to search for food, not love
   require Brainder
  
   # find and eat juicy brains
