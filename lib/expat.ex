@@ -6,7 +6,7 @@ defmodule Expat do
   @doc """
   ## Examples
 
-      defpath has_email(%{"email" => email})
+      defpat has_email(%{"email" => email})
       has_email() = %{"email" => "foo@bar.com"}
 
   """
