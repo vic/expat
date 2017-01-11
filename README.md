@@ -93,9 +93,14 @@ One nice thing about `expat` patterns is that because they are generated as macr
 pattern can be used in Elixir `with`, `case`, as the left side of a `=` match, like in tests
 
 ```elixir
- . test "dude is smart", %{dude: dude} do
-  . . assert subject(iq: 200) = dude
-  .end
+test "dude is smart", %{dude: dude} do
+  assert subject(iq: 200) = dude
+end
+
+test "subject() binds all variables inside it", %{dude: subject()} do
+  assert iq > 200
+  assert email == "terry.tao@example.com"
+end
 `````
 
 For example, you could export the `Briander.subject` pattern in a library and have nice people to use it for matching on things with that pattern (maybe before passing them to your api).
