@@ -25,7 +25,7 @@ defmodule Brainder do
         "iq" => iq_b
         "email" => _,
         "location" => %{
-           "lat" => _, "lng" => _
+           "latitude" => _, "longitude" => _
         }
     }) when abs(iq_a - ia_b) < 10 
   do
