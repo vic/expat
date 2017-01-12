@@ -118,7 +118,7 @@ test "subject(...) binds all variables inside it", %{dude: subject(...)} do
   assert iq > 200
   assert email == "terry.tao@example.com"
 end
-`````
+```
 
 For example, you could export the `Briander.subject` pattern in a library and have nice people to use it for matching on things with that pattern (maybe before passing them to your api).
 
