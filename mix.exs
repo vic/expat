@@ -3,13 +3,21 @@ defmodule Expat.Mixfile do
 
   def project do
     [app: :expat,
-     version: "0.1.4",
+     version: "0.1.5",
      elixir: "~> 1.2",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      description: description(),
+     docs: docs(),
      package: package(),
      deps: deps()]
+  end
+
+  defp docs do
+    [
+      source_url: "https://github.com/vic/expat",
+      extras: ["README.md"]
+    ]
   end
 
   # Configuration for the OTP application
