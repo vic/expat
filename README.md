@@ -138,7 +138,7 @@ def ZombieCoder do
  
   # uze pattenrs to creaate new dataa!
   def make_zombbie() do
-    Map.merge(Brainder.iq(0.7), Brander.latlng(lat: 27, lng: 28))
+    Map.merge(Brainder.iq(0.7), Brainder.latlng(lat: 27, lng: 28))
   end
 end
 ```
