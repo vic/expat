@@ -56,4 +56,3 @@ defmodule Expat.Test do
   end
 
 end
-

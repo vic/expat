@@ -36,11 +36,11 @@ end
 
 ## Usage
 
-Expat provides a `defpat/1` and `defpatp/1` that will define a pattern macro, thus moving away those patterns into resusable bits (expatriating them from the function head). Allowing you to avoid duplicating patterns, and possibly exporting them (when defined as public with `defpat` for others to use)
+Expat provides a `defpat/1` and `defpatp/1` that will define a pattern macro, thus moving away those patterns into reusable bits (expatriating them from the function head). Allowing you to avoid duplicating patterns, and possibly exporting them (when defined as public with `defpat` for others to use)
 
 ```elixir
 defmodule Brainder do
-  include Expat
+  import Expat
 
   # defpath takes a name and a pattern it will expand to:
   defpat iq(%{"iq" => iq})
@@ -67,7 +67,7 @@ end
 
 Notice how `subject(iq: iq_a)` tells expat we only are interested in the subject's IQ
 and we replace the `iq` variable with another variable `iq_a` inside the subject pattern.
-This way when you explictily state that you are interested in just some variables, all
+This way when you explicitly state that you are interested in just some variables, all
 other unbound variables will be replaced with `_` placeholders, thus expanding to: 
 
 ```elixir
