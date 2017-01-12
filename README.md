@@ -132,7 +132,7 @@ def ZombieCoder do
   # match jummy IQQ and locatioon
   def braaaaains() do
     World.population
-    |> Stream.filter(fn Brainder.iq() = Brainer.location() where iq > 200 -> {lat, lng} end)
+    |> Stream.filter(fn Brainder.iq() = Brainer.location() when iq > 200 -> {lat, lng} end)
     |> Stream.map(&yuuuumi_eaaaat/1)
   end
 end
