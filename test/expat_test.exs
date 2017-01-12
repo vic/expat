@@ -36,5 +36,24 @@ defmodule Expat.Test do
     assert password == "bar"
   end
 
+  defpat nerd %{"iq" => iq}
+  defpat email %{"email" => email}
+  defpat latlng %{"latitude" => lat, "longitude" => lng}
+
+  test "zombies example" do
+    juicy = %{"iq" => 210, "email" => "terry.tao@example.com",
+              "latitude" => 19.0, "longitude" => 20.0}
+    # match two patterns at once, bind all variables
+    assert nerd() = latlng() = juicy
+    assert iq == 210
+    assert lat == 19.0
+    assert lng == 20.0
+  end
+
+  test "can use patterns to create data" do
+    dude = Map.merge(nerd(220), latlng(lat: 10, lng: 20))
+    assert %{"latitude" => 10, "iq" => 220} = dude
+  end
+
 end
 

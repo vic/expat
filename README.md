@@ -135,8 +135,15 @@ def ZombieCoder do
     |> Stream.filter(fn Brainder.iq() = Brainer.location() when iq > 200 -> {lat, lng} end)
     |> Stream.map(&yuuuumi_eaaaat/1)
   end
+ 
+  # uze pattenrs to creaate new dataa!
+  def make_zombbie() do
+    Map.merge(Brainder.iq(0.7), Brander.location(lat: 27, lng: 28))
+  end
 end
 ```
+
+Look at [expat_test](https://github.com/vic/expat/blob/master/test/expat_test.exs) for more examples.
 
 
 ## Installation
