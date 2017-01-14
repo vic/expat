@@ -2,7 +2,7 @@
 
 Expat lets you split patterns (be it for maps, lists, tuples, etc) into reusable bits being able to combine them and use them across Elixir libraries.
 
-If you are looking to validate Elixir data structures you might want to look at [Spec](https://github.com/vic/spec). You can always first conform your data with Spec and then pattern match on it with Expact to use some values inside of the conformed values.
+If you are looking to validate Elixir data structures you might want to look at [Spec](https://github.com/vic/spec). You can always first conform your data with Spec and then use Expat to pattern match the resulting conformed value and extract some value to work on.
 
 ## Extracting patterns into reusable bits
 
