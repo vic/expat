@@ -52,7 +52,7 @@ defmodule Brainder do
   defpat latlng %{"latitude" => lat, "longitude" => lng}
   defpat location %{"location" => latlng()}
 
-  # *mixing* patterns is done naturally by using the `=` match operator
+  # intersecting patterns is done naturally by using the standard `=` match operator
   # thus subject is something that has iq, email and a location.
   defpat subject(iq() = email() = location())
 
