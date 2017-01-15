@@ -44,7 +44,7 @@ Expat provides a `defpat/1` and `defpatp/1` that will define a pattern macro, th
 defmodule Brainder do
   import Expat
 
-  # defpath takes a name and a pattern it will expand to:
+  # defpath takes a name and a pattern to expand into.
   defpat iq(%{"iq" => iq})
   defpat email %{"email" => email}
 
