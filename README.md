@@ -7,7 +7,7 @@ If you are looking to validate Elixir data structures you might want to look at 
 ## Extracting patterns into reusable bits
 
 Pattern matching on function heads is *the alchemist way* for dispatching to the
-correct function on Elixir. However if a patterns get very large (I've seen people who could split their code better having _large_ patterns on their phoenix controllers due to nested patterns like maps inside maps, or matching on many parameters) then code could turn a bit ugly (IMHO) forcing the reader's eyes to parse the whole pattern and then discover where the actual
+correct function on Elixir. However when patterns get very large (I've seen people who could split their code better having _large_ patterns on their phoenix controllers due to nested patterns like maps inside maps, or matching on many parameters) then code could turn a bit ugly (IMHO) forcing the reader's eyes to parse the whole pattern and then discover where the actual
 function logic starts.
 
 ```elixir
