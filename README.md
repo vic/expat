@@ -1,5 +1,8 @@
-# Expat - Elixir reusable, composable patterns <a href="https://travis-ci.org/vic/expat"><img src="https://travis-ci.org/vic/expat.svg"></a>
-[![help maintain this lib](https://img.shields.io/badge/looking%20for%20maintainer-DM%20%40vborja-663399.svg)](https://twitter.com/vborja)
+# Expat - Elixir reusable, composable patterns
+
+[![Hex.pm](https://img.shields.io/hexpm/v/expat.svg)](https://hex.pm/packages/expat)
+<a href="https://travis-ci.org/vic/expat"><img src="https://travis-ci.org/vic/expat.svg"></a>
+
 
 
 Expat lets you split patterns (be it for maps, lists, tuples, etc) into reusable bits being able to combine them and use them across Elixir libraries.
