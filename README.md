@@ -3,9 +3,7 @@
 [![Hex.pm](https://img.shields.io/hexpm/v/expat.svg)](https://hex.pm/packages/expat)
 <a href="https://travis-ci.org/vic/expat"><img src="https://travis-ci.org/vic/expat.svg"></a>
 
-
-
-Expat lets you split patterns (be it for maps, lists, tuples, etc) into reusable bits being able to combine them and use them across Elixir libraries.
+Expat lets you split any pattern (be it for maps, lists, tuples, etc) into reusable bits, enabling you to combine them or export some patterns for reuse across Elixir libraries.
 
 If you are looking to validate Elixir data structures you might want to look at [Spec](https://github.com/vic/spec). You can always first conform your data with Spec and then use Expat to pattern match the resulting conformed value and extract some value from it.
 
@@ -49,12 +47,13 @@ Expat provides a `defpat/1` and `defpatp/1` that will define a pattern macro, th
 defmodule Brainder do
   import Expat
 
-  # defpath takes a name and a pattern to expand into.
+  # defpat takes a name and a pattern to expand into.
   defpat iq(%{"iq" => iq})
   defpat email %{"email" => email}
 
-  # patterns can be reused inside others
+
   defpat latlng %{"latitude" => lat, "longitude" => lng}
+  # patterns can be reused inside others by calling them
   defpat location %{"location" => latlng()}
 
   # intersecting patterns is done naturally by using the standard `=` match operator
