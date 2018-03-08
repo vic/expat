@@ -1,25 +1,31 @@
 defmodule Expat do
 
-  @doc """
-      use Expat
-  """ && false
-  defmacro __using__([]) do
-    quote do
-      import Expat
-    end
-  end
-
   @doc ~S"""
-  Convenience for importing named patterns from a module.
+  Imports `defpat` and `expat` into scope.
 
-     use Expat, import: {Named, [:age_to_vote]}
+      use Expat
+
+
+  Since named patterns are just macros, they must
+  be required and in scope at compile for using them.
+  For this reason, the following syntax can be used
+  to automatically require MyPatterns and import a list
+  of named patterns from it.
+
+      use Expat, import: {MyPatterns, [:age_to_vote]}
 
   This has the advantage of importing Expat and requiring
   the module (because we are going to use their macros) and
   importing just the given named patterns, because all the
   generated pattern macros have the same arity, they can be
   imported in a single step.
-  """ && false
+  """
+  defmacro __using__([]) do
+    quote do
+      import Expat
+    end
+  end
+
   defmacro __using__(import: {module, names}) do
     quote do
       import Expat
