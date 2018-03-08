@@ -1,7 +1,7 @@
 defmodule Expat.Test do
   use ExUnit.Case
 
-  import Expat.Test.Guards
+  import Expat.Test.Named
 
   use Expat
 
@@ -49,6 +49,7 @@ defmodule Expat.Test do
         assert age_to_vote(n: x) = 20
       end
 
-    assert {20, ["age_to_vote n": 20]} = Code.eval_quoted(q, [], __ENV__)
+    bound = [{:"age_to_vote n", 20}, {{:x, __MODULE__}, 20}]
+    assert {20, ^bound} = Code.eval_quoted(q, [], __ENV__)
   end
 end

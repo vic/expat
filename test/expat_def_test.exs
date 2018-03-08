@@ -1,9 +1,6 @@
 defmodule Expat.DefTest do
   use ExUnit.Case
-  use Expat
-
-  import Expat.Test, only: [age_to_vote: 1]
-  age_to_vote(_: [escape: true])
+  use Expat, import: {Expat.Test.Named, [:age_to_vote]}
 
   expat def vote(age_to_vote()) do
     :voted

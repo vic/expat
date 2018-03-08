@@ -44,18 +44,19 @@ defmodule Expat.Macro do
     value = pattern_value(head)
     guard = pattern_guard(head)
 
-    head = value == nil && head ||
-      case expand_collecting_guard(value, guard, opts) do
-        {:when, _, [value, guard]} ->
-          head
-          |> update_pattern_guard(fn _ -> guard end)
-          |> update_pattern_value(fn _ -> value end)
+    head =
+      (value == nil && head) ||
+        case expand_collecting_guard(value, guard, opts) do
+          {:when, _, [value, guard]} ->
+            head
+            |> update_pattern_guard(fn _ -> guard end)
+            |> update_pattern_value(fn _ -> value end)
 
-        value ->
-          head
-          |> update_pattern_guard(fn _ -> nil end)
-          |> update_pattern_value(fn _ -> value end)
-      end
+          value ->
+            head
+            |> update_pattern_guard(fn _ -> nil end)
+            |> update_pattern_value(fn _ -> value end)
+        end
 
     {defn, c, [head, rest]}
   end
@@ -64,8 +65,9 @@ defmodule Expat.Macro do
     clauses =
       clauses
       |> Enum.map(fn {:->, a, [[e], body]} ->
-      {:->, a, [[expand_calls_inside(e, opts)], body]}
-    end)
+        {:->, a, [[expand_calls_inside(e, opts)], body]}
+      end)
+
     {:fn, c, clauses}
   end
 

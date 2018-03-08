@@ -1,7 +1,17 @@
 defmodule Expat do
-  defmacro __using__(_) do
+  @doc false
+  defmacro __using__([]) do
     quote do
       import Expat
+    end
+  end
+
+  @doc "convenience for requiring and importing just some guards" && false
+  defmacro __using__(import: {module, names}) do
+    quote do
+      import Expat
+      require unquote(module)
+      import unquote(module), only: unquote(Enum.map(names, fn n -> {n, 1} end))
     end
   end
 
