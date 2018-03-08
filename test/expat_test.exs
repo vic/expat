@@ -2,7 +2,6 @@ defmodule Expat.Test do
   use ExUnit.Case
 
   import Expat.Test.Named
-
   use Expat
 
   test "defpat defines a macro" do
@@ -53,3 +52,4 @@ defmodule Expat.Test do
     assert {20, ^bound} = Code.eval_quoted(q, [], __ENV__)
   end
 end
+

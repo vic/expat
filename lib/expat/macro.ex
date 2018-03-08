@@ -1,6 +1,6 @@
 defmodule Expat.Macro do
   @moduledoc """
-             Utilities for working with Macro.t()
+             Expat internals for working with Macro.t()
              """ && false
 
   alias Expat, as: E
@@ -38,6 +38,8 @@ defmodule Expat.Macro do
   def expand_inside(expr, opts) do
     Macro.postwalk(expr, &do_expand_inside(&1, opts))
   end
+
+  ## Private parts bellow
 
   defp do_expand_inside({defn, c, [head, rest]}, opts)
        when defn == :def or defn == :defp or defn == :defmacro or defn == :defmacrop do
@@ -143,17 +145,11 @@ defmodule Expat.Macro do
     end)
   end
 
-  ## Private parts
-
   @doc "Make underable variables an underscore to be ignored" && false
   defp make_under(pattern) do
     Macro.prewalk(pattern, fn
-      v = {n, m, c} when is_atom(n) and is_atom(c) ->
-        if m[:underable] do
-          {:_, [], nil}
-        else
-          v
-        end
+      v = {_, m, _} ->
+        m[:underable] && {:_, [], nil} || v
 
       x ->
         x
@@ -217,10 +213,10 @@ defmodule Expat.Macro do
         x
 
       {a, m = [{:bindable, b} | _], c} ->
-        if v = binds[b] do
-          {:=, [bound: true], [v, {a, [bound: v] ++ m, c}]}
-        else
+        unless var = binds[b] do
           {a, m, c}
+        else
+          m[:underable] && var || {:=, [bound: true], [var, {a, [bound: true] ++ m, c}]}
         end
 
       x ->
