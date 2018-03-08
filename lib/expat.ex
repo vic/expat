@@ -1,12 +1,25 @@
 defmodule Expat do
-  @doc false
+
+  @doc """
+      use Expat
+  """ && false
   defmacro __using__([]) do
     quote do
       import Expat
     end
   end
 
-  @doc "convenience for requiring and importing just some guards" && false
+  @doc ~S"""
+  Convenience for importing named patterns from a module.
+
+     use Expat, import: {Named, [:age_to_vote]}
+
+  This has the advantage of importing Expat and requiring
+  the module (because we are going to use their macros) and
+  importing just the given named patterns, because all the
+  generated pattern macros have the same arity, they can be
+  imported in a single step.
+  """ && false
   defmacro __using__(import: {module, names}) do
     quote do
       import Expat
