@@ -1,6 +1,6 @@
 # Expat - Reusable, composable patterns in Elixir.
 
-[![Travis](https://img.shields.io/travis/USER/REPO.svg)](https://travis-ci.org/vic/expat)
+[![Travis](https://img.shields.io/travis/vic/expat.svg)](https://travis-ci.org/vic/expat)
 [![Hex.pm](https://img.shields.io/hexpm/v/expat.svg?style=flat-square)](https://hexdocs.pm/expat)
 
 ## About
