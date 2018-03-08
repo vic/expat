@@ -196,10 +196,11 @@ defmodule Expat.Macro do
         x
 
       {a, m = [{:bindable, b} | _], c} ->
-        unless var = binds[b] do
-          {a, m, c}
-        else
-          m[:underable] && var || {:=, [bound: true], [var, {a, [bound: true] ++ m, c}]}
+        case binds[b] do
+          nil ->
+            {a, m, c}
+          expr ->
+            m[:underable] && expr || {:=, [bound: true], [expr, {a, [bound: true] ++ m, c}]}
         end
 
       x ->
