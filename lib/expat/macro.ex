@@ -43,22 +43,14 @@ defmodule Expat.Macro do
 
   defp do_expand_inside({defn, c, [head, rest]}, opts)
        when defn == :def or defn == :defp or defn == :defmacro or defn == :defmacrop do
-    value = pattern_value(head)
+    args = pattern_args(head)
     guard = pattern_guard(head)
 
+    {args, guard} = expand_args_collecting_guard(args, guard, opts)
     head =
-      (value == nil && head) ||
-        case expand_collecting_guard(value, guard, opts) do
-          {:when, _, [value, guard]} ->
-            head
-            |> update_pattern_guard(fn _ -> guard end)
-            |> update_pattern_value(fn _ -> value end)
-
-          value ->
-            head
-            |> update_pattern_guard(fn _ -> nil end)
-            |> update_pattern_value(fn _ -> value end)
-        end
+      head
+      |> update_pattern_guard(fn _ -> guard end)
+      |> update_pattern_args(fn _ -> args end)
 
     {defn, c, [head, rest]}
   end
@@ -85,33 +77,34 @@ defmodule Expat.Macro do
 
   defp do_expand_inside(ast, _opts), do: ast
 
-  defp expand_collecting_guard(ast, guard, opts) do
+  defp expand_args_collecting_guard(args, guard, opts) do
+    Enum.map_reduce(args, guard, fn
+      arg, guard -> expand_arg_collecting_guard(arg, guard, opts)
+    end)
+  end
+
+  defp expand_arg_collecting_guard(ast, guard, opts) do
     env = Keyword.get(opts, :_, []) |> Keyword.get(:env, __ENV__)
+    ast
+    |> Macro.traverse(
+      guard,
+      fn
+        {c, m, [u]}, guard when is_list(u) ->
+          {c, m, [opts ++ u]}
+          |> Code.eval_quoted([], env)
+          |> elem(0)
+          |> collect_guard(guard)
 
-    {ast, guard} =
-      ast
-      |> Macro.traverse(
-        guard,
-        fn
-          {c, m, [u]}, guard when is_list(u) ->
-            {c, m, [opts ++ u]}
-            |> Code.eval_quoted([], env)
-            |> elem(0)
-            |> collect_guard(guard)
+        {c, m, []}, guard ->
+          {c, m, [opts]}
+          |> Code.eval_quoted([], env)
+          |> elem(0)
+          |> collect_guard(guard)
 
-          {c, m, []}, guard ->
-            {c, m, [opts]}
-            |> Code.eval_quoted([], env)
-            |> elem(0)
-            |> collect_guard(guard)
-
-          x, y ->
-            {x, y}
-        end,
-        fn x, y -> {x, y} end
-      )
-
-    (guard && {:when, [], [ast, guard]}) || ast
+        x, y ->
+          {x, y}
+      end,
+      fn x, y -> {x, y} end)
   end
 
   defp collect_guard({:when, _, [expr, guard]}, prev) do
@@ -231,10 +224,19 @@ defmodule Expat.Macro do
   end
 
   defp pattern_value(pattern) do
-    case pattern_head(pattern) do
-      {_name, _, [value]} -> value
-      {_name, _, []} -> nil
-    end
+    {_, _, [value]} = pattern |> pattern_head
+    value
+  end
+
+  defp pattern_args(pattern) do
+    {_, _, args} = pattern |> pattern_head
+    args
+  end
+
+  defp update_pattern_args(pattern, up) when is_function(up, 1) do
+    update_pattern_head(pattern, fn {name, c, args} ->
+      {name, c, up.(args)}
+    end)
   end
 
   defp update_pattern_guard(pattern, up) when is_function(up, 1) do
