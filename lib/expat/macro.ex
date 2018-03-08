@@ -84,22 +84,26 @@ defmodule Expat.Macro do
   end
 
   defp expand_arg_collecting_guard(ast, guard, opts) do
+    expand_collect(ast, guard, &collect_guard/2, opts)
+  end
+
+  defp expand_collect(ast, initial, collect, opts) do
     env = Keyword.get(opts, :_, []) |> Keyword.get(:env, __ENV__)
     ast
     |> Macro.traverse(
-      guard,
+      initial,
       fn
         {c, m, [u]}, guard when is_list(u) ->
           {c, m, [opts ++ u]}
           |> Code.eval_quoted([], env)
           |> elem(0)
-          |> collect_guard(guard)
+          |> collect.(guard)
 
         {c, m, []}, guard ->
           {c, m, [opts]}
           |> Code.eval_quoted([], env)
           |> elem(0)
-          |> collect_guard(guard)
+          |> collect.(guard)
 
         x, y ->
           {x, y}
@@ -119,23 +123,9 @@ defmodule Expat.Macro do
   defp and_guard(a, b), do: quote(do: unquote(a) and unquote(b))
 
   defp expand_calls_inside(ast, opts) do
-    env = Keyword.get(opts, :_, []) |> Keyword.get(:env, __ENV__)
-
     ast
-    |> Macro.prewalk(fn
-      {c, m, [u]} when is_list(u) ->
-        {c, m, [opts ++ u]}
-        |> Code.eval_quoted([], env)
-        |> elem(0)
-
-      {c, m, []} ->
-        {c, m, [opts]}
-        |> Code.eval_quoted([], env)
-        |> elem(0)
-
-      x ->
-        x
-    end)
+    |> expand_collect(nil, fn x, y -> {x, y} end, opts)
+    |> elem(0)
   end
 
   @doc "Make underable variables an underscore to be ignored" && false
