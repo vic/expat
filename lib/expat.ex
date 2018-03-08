@@ -1,4 +1,5 @@
 defmodule Expat do
+  @moduledoc File.read!(Path.expand("../README.md", __DIR__))
 
   @doc ~S"""
   Imports `defpat` and `expat` into scope.
@@ -46,6 +47,10 @@ defmodule Expat do
   This function takes only the function head as argument.
   You may also specify a guard, but never a do block.
 
+  Variables present in the function head can be later bound.
+  Guards if any are also expanded at call site, for example
+  in `def`, `case`, `fn` expressions. See `expat/1` for more.
+
   ## Examples
 
       defpat person(%Person{name: name})
@@ -71,7 +76,7 @@ defmodule Expat do
 
   Note that for this to work, the macros that
   define the named patterns should already have
-  been compiled. For this reason, most of the
+  been compiled and in scope. For this reason, most of the
   time, named patterns should be defined on
   separate modules and imported for use.
 
@@ -79,64 +84,64 @@ defmodule Expat do
 
   You define a module for your named patterns
 
-     defmodule MyPatterns do
-       use Expat
+      defmodule MyPatterns do
+        use Expat
 
-       @doc "Matches when n is legal age to vote"
-       defpat adult_age(n) when n > 18
-     end
+        @doc "Matches when n is legal age to vote"
+        defpat adult_age(n) when n > 18
+      end
 
   Then you can import it and use it's macros
 
-     defmodule Foo do
-        use Expat
-        import MyPatterns
+      defmodule Foo do
+         use Expat
+         import MyPatterns
 
-        def foo(x) do
-          # Tell expat that we want the case
-          # clauses being able to use guards
-          # from the named pattern.
-          #
-          # foo(20) => :vote
-          #
-          expat case x do
-            adult_age() -> :vote
-          end
-        end
+         def foo(x) do
+           # Tell expat that we want the case
+           # clauses being able to use guards
+           # from the named pattern.
+           #
+           # foo(20) => :vote
+           #
+           expat case x do
+             adult_age() -> :vote
+           end
+         end
 
-        # You can also use expat at the `def`
-        # level (or defp, defmacro, etc)
-        #
-        # In this case, we are asking expat to
-        # also expand the named patterns it
-        # sees on our function head, and the
-        # guards it produces are added to our
-        # function definition.
-        #
-        # vote(20) => {:voted, 20}
-        # vote(20) => no function match error
-        #
-        expat def vote(adult_age(n: x)) do
-          {:voted, x}
-        end
-     end
+         # You can also use expat at the `def`
+         # level (or defp, defmacro, etc)
+         #
+         # In this case, we are asking expat to
+         # also expand the named patterns it
+         # sees on our function head, and the
+         # guards it produces are added to our
+         # function definition.
+         #
+         # vote(20) => {:voted, 20}
+         # vote(20) => no function match error
+         #
+         expat def vote(adult_age(n: x)) do
+           {:voted, x}
+         end
+      end
 
   You can even use `expat` only once at the module
   level, then all it's `def`, `case`, `fn`, ... will
   be able to use named patterns.
 
 
-      use Expat
-      import MyPatterns, only: [adult_age: 1]
+       use Expat
+       import MyPatterns, only: [adult_age: 1]
 
-      expat defmodule Ellections do
+       expat defmodule Ellections do
 
-         def vote(adult_age(n: x)) do
-           {:ok, x}
-         end
+          def vote(adult_age(n: x)) do
+            {:ok, x}
+          end
 
-         def vote(_), do: :error
-      end
+          def vote(_), do: :error
+       end
 
   """
   @spec expat(Macro.t()) :: Macro.t()
