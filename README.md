@@ -108,7 +108,7 @@ Let's use some structs instead of tuples, as that might be
 a more common use case.
 
 ```elixir
-     defmodule Mascot do
+     defmodule Pet do
         defstruct [:name, :age, :owner, :kind]
      end
 
@@ -121,12 +121,12 @@ a more common use case.
 
        defpat mexican(%Person{name: name, country: "MX"})
 
-       defpat mexican_parrot(%Mascot{kind: :parrot, name: name,  age: age,
+       defpat mexican_parrot(%Pet{kind: :parrot, name: name,  age: age,
                                      owner: mexican(name: owner_name)})
      end
 
      iex> vic  = %Person{name: "vic", country: "MX"}
-     ...> milo = %Mascot{kind: :parrot, name: "Milo", owner: vic, age: 4}
+     ...> milo = %Pet{kind: :parrot, name: "Milo", owner: vic, age: 4}
      ...>
      ...> # here, we are only interested in the owner's name
      ...> mexican_parrot(owner_name: name) = milo
@@ -138,7 +138,7 @@ And again, if you bind all the variables, it could be used as a data constructor
 
 ```elixir
      iex> mexican_parrot(age: 1, name: "Venus", owner_name: "Alicia")
-     %Mascot{kind: :parrot, name: "Venus", age: 1, owner: %Person{country: "MX", name: "Alicia", age: nil}}
+     %Pet{kind: :parrot, name: "Venus", age: 1, owner: %Person{country: "MX", name: "Alicia", age: nil}}
 ```
 
 Then you could use those patterns in a module of yours

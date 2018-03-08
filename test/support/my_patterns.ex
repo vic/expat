@@ -1,4 +1,4 @@
-defmodule Mascot do
+defmodule Pet do
   defstruct [:name, :age, :owner, :kind]
 end
 
@@ -13,7 +13,7 @@ defmodule MyPatterns do
 
   defpat mexican(%Person{name: name, country: "MX"})
 
-  defpat mexican_parrot(%Mascot{kind: :parrot, name: name,  age: age,
+  defpat mexican_parrot(%Pet{kind: :parrot, name: name,  age: age,
                                 owner: mexican(name: owner_name)})
 end
 

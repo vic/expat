@@ -1,5 +1,7 @@
 defmodule Expat do
-  @moduledoc File.read!(Path.expand("../README.md", __DIR__))
+  @readme File.read!(Path.expand("../README.md", __DIR__))
+  @external_resource  @readme
+  @moduledoc @readme
 
   @doc ~S"""
   Imports `defpat` and `expat` into scope.
