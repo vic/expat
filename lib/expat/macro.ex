@@ -12,21 +12,26 @@ defmodule Expat.Macro do
     bindable = pattern |> mark_non_guarded |> mark_bindable
     escaped = bindable |> Macro.escape()
 
-    opts = quote do
-      [_: [env: __CALLER__, name: unquote(name)]]
-    end
+    opts =
+      quote do
+        [_: [env: __CALLER__, name: unquote(name)]]
+      end
 
     arg_names = bindable_names_in_ast(bindable)
     arities = 0..length(arg_names)
 
     value = pattern |> pattern_value
     guard = pattern |> pattern_guard
-    code = cond do
-      guard -> {:when, [], [value, guard]}
-      true -> value
-    end |> Macro.to_string
 
-    first_name = arg_names |> List.first
+    code =
+      cond do
+        guard -> {:when, [], [value, guard]}
+        true -> value
+      end
+      |> Macro.to_string()
+
+    first_name = arg_names |> List.first()
+
     doc = """
     Expands the `#{name}` pattern.
 
@@ -62,31 +67,33 @@ defmodule Expat.Macro do
 
     """
 
-    defs = Enum.map(arities, fn n ->
-      args = arg_names |> Enum.take(n)
-      last = arg_names |> Enum.at(n)
-      vars = args |> Enum.map(&Macro.var(&1, __MODULE__))
-      argt = args |> Enum.map(fn _ -> quote do: any end)
-      kw = Enum.zip([args, vars])
+    defs =
+      Enum.map(arities, fn n ->
+        args = arg_names |> Enum.take(n)
+        last = arg_names |> Enum.at(n)
+        vars = args |> Enum.map(&Macro.var(&1, __MODULE__))
+        argt = args |> Enum.map(fn _ -> quote do: any end)
+        kw = Enum.zip([args, vars])
 
+        quote do
+          @doc unquote(doc)
+          @spec unquote(name)(unquote_splicing(argt), named_binds :: keyword) :: any
+          unquote(defm)(unquote(name)(unquote_splicing(vars), named_binds)) do
+            opts = named_binds
+            opts = (Keyword.keyword?(opts) && opts) || [{unquote(last), opts}]
+            opts = unquote(kw) ++ opts ++ unquote(opts)
+            Expat.Macro.expand(unquote(escaped), opts)
+          end
+        end
+      end)
+
+    zero =
       quote do
-        @doc  unquote(doc)
-        @spec unquote(name)(unquote_splicing(argt), named_binds :: keyword) :: any
-        unquote(defm)(unquote(name)(unquote_splicing(vars), named_binds)) do
-          opts = named_binds
-          opts = (Keyword.keyword?(opts) && opts) || [{unquote(last), opts}]
-          opts = unquote(kw) ++ opts ++ unquote(opts)
-          Expat.Macro.expand(unquote(escaped), opts)
+        @doc unquote(doc)
+        unquote(defm)(unquote(name)()) do
+          Expat.Macro.expand(unquote(escaped), unquote(opts))
         end
       end
-    end)
-
-    zero = quote do
-      @doc unquote(doc)
-      unquote(defm)(unquote(name)()) do
-        Expat.Macro.expand(unquote(escaped), unquote(opts))
-      end
-    end
 
     defs = [zero] ++ defs
     {:__block__, [], defs}
@@ -96,9 +103,10 @@ defmodule Expat.Macro do
   @spec expand(pattern :: E.pattern(), opts :: list) :: Macro.t()
   def expand(pattern, opts) when is_list(opts) do
     binds = Keyword.delete(opts, :_)
-    expat_opts = Keyword.get_values(opts, :_) |> Enum.concat
+    expat_opts = Keyword.get_values(opts, :_) |> Enum.concat()
 
     guard = pattern_guard(pattern)
+
     value =
       pattern
       |> pattern_value
@@ -131,6 +139,7 @@ defmodule Expat.Macro do
     guard = pattern_guard(head)
 
     {args, guard} = expand_args_collecting_guard(args, guard, opts)
+
     head =
       head
       |> update_pattern_guard(fn _ -> guard end)
@@ -165,69 +174,65 @@ defmodule Expat.Macro do
       |> Enum.map(fn
         {:<-, a, [p, e]} ->
           {:<-, a, [expand_calls_inside(p, opts), e]}
-        x -> x
-       end)
+
+        x ->
+          x
+      end)
+
     {:with, c, clauses}
   end
 
   defp do_expand_inside(ast, _opts), do: ast
 
   defp expand_args_collecting_guard(args, guard, opts) do
-    Enum.map_reduce(args, guard, fn
-      arg, guard -> expand_arg_collecting_guard(arg, guard, opts)
+    Enum.map_reduce(args, guard, fn arg, guard ->
+      expand_arg_collecting_guard(arg, guard, opts)
     end)
   end
 
   defp expand_arg_collecting_guard(ast, guard, opts) do
-    expand_calls_collect(ast, {true, guard}, &collect_guard/2, opts)
+    expand_calls_collect({ast, {true, guard}}, opts)
   end
 
-  defp expand_calls_collect(ast, {false, final}, _, _) do
-    {ast, final}
-  end
+  defp expand_calls_collect({ast, {false, final}}, _), do: {ast, final}
 
-  defp expand_calls_collect(ast, acc, collect, opts) do
-    {ast, acc} = expand_calls_collect_once(ast, acc, collect, opts)
-    expand_calls_collect(ast, acc, collect, opts)
-  end
-
-  defp expand_calls_collect_once(ast, {true, initial}, collect, opts) do
+  defp expand_calls_collect({ast, {true, initial}}, opts) do
     env = Keyword.get(opts, :_, []) |> Keyword.get(:env, __ENV__)
-    ast
-    |> Macro.traverse(
-      {false, initial},
-      fn x, y -> {x, y} end,
-      fn
-        x = {c, m, args}, y = {_, acc} when is_list(args) ->
-          if to_string(c) =~ ~R/^[a-z]/ do
-            expat_opts = [_: [escape: true]]
-            args =
-              args
-              |> Enum.reverse
-              |> case do
-                   [o | rest] when is_list(o) ->
-                     if Keyword.keyword?(o) do
-                       [expat_opts ++ o] ++ rest
-                     else
-                       [expat_opts, o] ++ rest
-                     end
-                   x ->
-                     [expat_opts] ++ x
-                 end
-              |> Enum.reverse
 
-            {c, m, args}
-            |> Code.eval_quoted([], env)
-            |> elem(0)
-            |> collect.(acc)
-            |> fn {x, y} -> {x, {true, y}} end.()
-          else
-            {x, y}
-          end
+    Macro.traverse(ast, {false, initial}, fn x, y -> {x, y} end, fn
+      x = {c, m, args}, y = {_, acc} when is_list(args) ->
+        if to_string(c) =~ ~R/^[a-z]/ do
+          expat_opts = [_: [escape: true]]
 
-        x, y ->
+          args =
+            args
+            |> Enum.reverse()
+            |> case do
+              [o | rest] when is_list(o) ->
+                if Keyword.keyword?(o) do
+                  [expat_opts ++ o] ++ rest
+                else
+                  [expat_opts, o] ++ rest
+                end
+
+              x ->
+                [expat_opts] ++ x
+            end
+            |> Enum.reverse()
+
+          {c, m, args}
+          |> Code.eval_quoted([], env)
+          |> elem(0)
+          |> collect_guard(acc)
+          |> (fn {x, y} -> {x, {true, y}} end).()
+        else
           {x, y}
-      end)
+        end
+
+      x, y ->
+        {x, y}
+    end)
+    |> expand_calls_collect(opts)
   end
 
   defp collect_guard({:when, _, [expr, guard]}, prev) do
@@ -242,19 +247,23 @@ defmodule Expat.Macro do
   defp and_guard(a, b), do: quote(do: unquote(a) and unquote(b))
 
   defp expand_calls_inside(ast, opts) do
-    {expr, guard} = case ast do
-                      {:when, _, [ast, guard]} ->
-                        expand_arg_collecting_guard(ast, guard, opts)
-                      _ -> expand_arg_collecting_guard(ast, nil, opts)
-                    end
-    guard && {:when, [], [expr, guard]} || expr
+    {expr, guard} =
+      case ast do
+        {:when, _, [ast, guard]} ->
+          expand_arg_collecting_guard(ast, guard, opts)
+
+        _ ->
+          expand_arg_collecting_guard(ast, nil, opts)
+      end
+
+    (guard && {:when, [], [expr, guard]}) || expr
   end
 
   @doc "Make underable variables an underscore to be ignored" && false
   defp make_under(pattern) do
     Macro.prewalk(pattern, fn
       v = {_, m, _} ->
-        m[:underable] && {:_, [], nil} || v
+        (m[:underable] && {:_, [], nil}) || v
 
       x ->
         x
@@ -305,7 +314,7 @@ defmodule Expat.Macro do
         ast, acc -> {ast, acc}
       end)
 
-    acc |> Stream.uniq_by(fn {a, _, _} -> a end) |> Enum.reverse
+    acc |> Stream.uniq_by(fn {a, _, _} -> a end) |> Enum.reverse()
   end
 
   defp bind(pattern, binds) do
@@ -414,9 +423,9 @@ defmodule Expat.Macro do
         ast = {_, m, _}, acc -> (m[key] && {ast, [m[key]] ++ acc}) || {ast, acc}
         ast, acc -> {ast, acc}
       end)
-    acc |> Stream.uniq |> Enum.reverse
-  end
 
+    acc |> Stream.uniq() |> Enum.reverse()
+  end
 
   defp bindable_names_in_ast(ast) do
     ast |> meta_in_ast(:bindable)
@@ -439,8 +448,9 @@ defmodule Expat.Macro do
         else
           {x, m, y}
         end
-      x -> x
+
+      x ->
+        x
     end)
   end
-
 end
