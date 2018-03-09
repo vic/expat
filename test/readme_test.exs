@@ -6,7 +6,6 @@ defmodule Expat.ReadmeTest do
   import MyPatterns
 
   require Voting
-  import Voting
 
   doctest Expat
 end

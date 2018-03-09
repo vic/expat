@@ -16,7 +16,7 @@ defmodule Expat.Macro do
       [_: [env: __CALLER__, name: unquote(name)]]
     end
 
-    arg_names = bindable_names_in_pattern(bindable)
+    arg_names = bindable_names_in_ast(bindable)
     arities = 0..length(arg_names)
 
     value = pattern |> pattern_value
@@ -96,17 +96,27 @@ defmodule Expat.Macro do
   @spec expand(pattern :: E.pattern(), opts :: list) :: Macro.t()
   def expand(pattern, opts) when is_list(opts) do
     binds = Keyword.delete(opts, :_)
-    opts = Keyword.get(opts, :_, [])
-    guard = pattern_guard(pattern)
+    expat_opts = Keyword.get_values(opts, :_) |> Enum.concat
 
+    guard = pattern_guard(pattern)
     value =
       pattern
       |> pattern_value
       |> bind(binds)
       |> make_under
 
+    # remove names bound on this expansion
+    bounds = bound_names_in_ast(value)
+    # only delete the first to allow sub expansions take the rest
+    binds = Enum.reduce(bounds, binds, &Keyword.delete_first(&2, &1))
+
+    opts = [_: expat_opts] ++ binds
+    {value, guard} = expand_arg_collecting_guard(value, guard, opts)
+
     result = (guard && {:when, [context: Elixir], [value, guard]}) || value
-    (opts[:escape] && Macro.escape(result)) || result
+    result = result |> set_expansion_counter(:erlang.unique_integer([:positive]))
+
+    (expat_opts[:escape] && Macro.escape(result)) || result
   end
 
   def expand_inside(expr, opts) do
@@ -169,31 +179,55 @@ defmodule Expat.Macro do
   end
 
   defp expand_arg_collecting_guard(ast, guard, opts) do
-    expand_collect(ast, guard, &collect_guard/2, opts)
+    expand_calls_collect(ast, {true, guard}, &collect_guard/2, opts)
   end
 
-  defp expand_collect(ast, initial, collect, opts) do
+  defp expand_calls_collect(ast, {false, final}, _, _) do
+    {ast, final}
+  end
+
+  defp expand_calls_collect(ast, acc, collect, opts) do
+    {ast, acc} = expand_calls_collect_once(ast, acc, collect, opts)
+    expand_calls_collect(ast, acc, collect, opts)
+  end
+
+  defp expand_calls_collect_once(ast, {true, initial}, collect, opts) do
     env = Keyword.get(opts, :_, []) |> Keyword.get(:env, __ENV__)
     ast
     |> Macro.traverse(
-      initial,
+      {false, initial},
+      fn x, y -> {x, y} end,
       fn
-        {c, m, [u]}, guard when is_list(u) ->
-          {c, m, [opts ++ u]}
-          |> Code.eval_quoted([], env)
-          |> elem(0)
-          |> collect.(guard)
+        x = {c, m, args}, y = {_, acc} when is_list(args) ->
+          if to_string(c) =~ ~R/^[a-z]/ do
+            expat_opts = [_: [escape: true]]
+            args =
+              args
+              |> Enum.reverse
+              |> case do
+                   [o | rest] when is_list(o) ->
+                     if Keyword.keyword?(o) do
+                       [expat_opts ++ o] ++ rest
+                     else
+                       [expat_opts, o] ++ rest
+                     end
+                   x ->
+                     [expat_opts] ++ x
+                 end
+              |> Enum.reverse
 
-        {c, m, []}, guard ->
-          {c, m, [opts]}
-          |> Code.eval_quoted([], env)
-          |> elem(0)
-          |> collect.(guard)
+            {c, m, args}
+            |> Code.eval_quoted([], env)
+            |> elem(0)
+            |> collect.(acc)
+            |> fn {x, y} -> {x, {true, y}} end.()
+          else
+            {x, y}
+          end
 
         x, y ->
           {x, y}
-      end,
-      fn x, y -> {x, y} end)
+      end)
   end
 
   defp collect_guard({:when, _, [expr, guard]}, prev) do
@@ -208,9 +242,12 @@ defmodule Expat.Macro do
   defp and_guard(a, b), do: quote(do: unquote(a) and unquote(b))
 
   defp expand_calls_inside(ast, opts) do
-    ast
-    |> expand_collect(nil, fn x, y -> {x, y} end, opts)
-    |> elem(0)
+    {expr, guard} = case ast do
+                      {:when, _, [ast, guard]} ->
+                        expand_arg_collecting_guard(ast, guard, opts)
+                      _ -> expand_arg_collecting_guard(ast, nil, opts)
+                    end
+    guard && {:when, [], [expr, guard]} || expr
   end
 
   @doc "Make underable variables an underscore to be ignored" && false
@@ -250,12 +287,9 @@ defmodule Expat.Macro do
 
   @doc "Marks all variables with the name they can be bound to" && false
   defp mark_bindable(pattern) do
-    name = pattern_name(pattern)
-
-    pattern
-    |> Macro.prewalk(fn
+    Macro.prewalk(pattern, fn
       {a, m, c} when is_atom(a) and is_atom(c) ->
-        {:"#{name} #{a}", [bindable: a] ++ m, c}
+        {a, [bindable: a] ++ m, c}
 
       x ->
         x
@@ -284,8 +318,16 @@ defmodule Expat.Macro do
         case binds[b] do
           nil ->
             {a, m, c}
+
+          var = {vn, vm, vc} ->
+            if m[:underable] do
+              {vn, [bound: b] ++ vm, vc}
+            else
+              {:=, [bound: b], [var, {a, [bound: b] ++ m, c}]}
+            end
+
           expr ->
-            m[:underable] && expr || {:=, [bound: true], [expr, {a, [bound: true] ++ m, c}]}
+            {:=, [bound: b], [{a, [bound: b] ++ m, c}, expr]}
         end
 
       x ->
@@ -366,12 +408,39 @@ defmodule Expat.Macro do
     name
   end
 
-  defp bindable_names_in_pattern(pattern) do
-    pattern
-    |> ast_variables
-    |> Stream.filter(fn {_, m, _} -> m[:bindable]; _ -> false end)
-    |> Stream.map(fn {_, m, _} -> m[:bindable] end)
-    |> Enum.to_list
+  defp meta_in_ast(ast, key) do
+    {_, acc} =
+      Macro.traverse(ast, [], fn x, y -> {x, y} end, fn
+        ast = {_, m, _}, acc -> (m[key] && {ast, [m[key]] ++ acc}) || {ast, acc}
+        ast, acc -> {ast, acc}
+      end)
+    acc |> Stream.uniq |> Enum.reverse
+  end
+
+
+  defp bindable_names_in_ast(ast) do
+    ast |> meta_in_ast(:bindable)
+  end
+
+  defp bound_names_in_ast(ast) do
+    ast |> meta_in_ast(:bound)
+  end
+
+  defp show(ast) do
+    IO.puts(Macro.to_string(ast))
+    ast
+  end
+
+  defp set_expansion_counter(ast, counter) do
+    Macro.postwalk(ast, fn
+      {x, m, y} when is_atom(x) and is_atom(y) ->
+        if m[:bindable] && !m[:expat_counter] do
+          {x, [counter: counter, expat_counter: counter] ++ m, y}
+        else
+          {x, m, y}
+        end
+      x -> x
+    end)
   end
 
 end
