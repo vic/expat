@@ -37,12 +37,4 @@ defmodule Expat.DefTest do
     assert :voted == anon().(20)
   end
 
-  # test "guarded variables should not be accessible"
-  # test "foo(bind: all)"
-  # test "foo(bind: except(a b c))"
-  # test "foo(:bind_all)"
-  # test "foo(:bind_except(a b c))"
-  # test "defpat with composed pattern and guards"
-  # test "expansion with bound variable should replace old var in guard"
 end
-

@@ -15,4 +15,3 @@ expat defmodule(Expat.DefModuleTest) do
     assert :voted == vote(20)
   end
 end
-

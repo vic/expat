@@ -9,18 +9,92 @@ defmodule Expat.Macro do
   @spec define_pattern(defm :: :defmacro | :defmacrop, E.pattern()) :: E.pattern()
   def define_pattern(defm, pattern) do
     name = pattern_name(pattern)
-    escaped = pattern |> mark_non_guarded |> mark_bindable |> Macro.escape()
+    bindable = pattern |> mark_non_guarded |> mark_bindable
+    escaped = bindable |> Macro.escape()
 
-    quote do
-      unquote(defm)(unquote(name)(opts \\ []) when is_list(opts)) do
-        Expat.Macro.expand(unquote(escaped), opts)
+    opts = quote do
+      [_: [env: __CALLER__, name: unquote(name)]]
+    end
+
+    arg_names = bindable_names_in_pattern(bindable)
+    arities = 0..length(arg_names)
+
+    value = pattern |> pattern_value
+    guard = pattern |> pattern_guard
+    code = cond do
+      guard -> {:when, [], [value, guard]}
+      true -> value
+    end |> Macro.to_string
+
+    first_name = arg_names |> List.first
+    doc = """
+    Expands the `#{name}` pattern.
+
+        #{code}
+
+
+    ## Binding Variables
+
+    The following variables can be bound by giving them
+    to `#{name}` as keys on its last argument Keyword.
+
+        #{arg_names |> Enum.map(&":#{&1}") |> Enum.join(", ")}
+
+    For example:
+
+        #{name}(#{first_name}: x)
+
+    Where `x` can be any value, variable in your scope
+    or another pattern expansion.
+    Not mentioned variables will be unbound and replaced by
+    an `_` at expansion site.
+    Likewise, calling `#{name}()` with no argumens will
+    replace all its variables with `_`.
+
+    ## Positional Variables
+
+    `#{name}` variables can also be bound by position,
+    provided the last them is not a Keyword.
+
+    For example:
+
+        #{name}(#{Enum.join(arg_names, ", ")}, named_binds = [])
+
+    """
+
+    defs = Enum.map(arities, fn n ->
+      args = arg_names |> Enum.take(n)
+      last = arg_names |> Enum.at(n)
+      vars = args |> Enum.map(&Macro.var(&1, __MODULE__))
+      argt = args |> Enum.map(fn _ -> quote do: any end)
+      kw = Enum.zip([args, vars])
+
+      quote do
+        @doc  unquote(doc)
+        @spec unquote(name)(unquote_splicing(argt), named_binds :: keyword) :: any
+        unquote(defm)(unquote(name)(unquote_splicing(vars), named_binds)) do
+          opts = named_binds
+          opts = (Keyword.keyword?(opts) && opts) || [{unquote(last), opts}]
+          opts = unquote(kw) ++ opts ++ unquote(opts)
+          Expat.Macro.expand(unquote(escaped), opts)
+        end
+      end
+    end)
+
+    zero = quote do
+      @doc unquote(doc)
+      unquote(defm)(unquote(name)()) do
+        Expat.Macro.expand(unquote(escaped), unquote(opts))
       end
     end
+
+    defs = [zero] ++ defs
+    {:__block__, [], defs}
   end
 
   @doc "Expands a pattern"
   @spec expand(pattern :: E.pattern(), opts :: list) :: Macro.t()
-  def expand(pattern, opts) do
+  def expand(pattern, opts) when is_list(opts) do
     binds = Keyword.delete(opts, :_)
     opts = Keyword.get(opts, :_, [])
     guard = pattern_guard(pattern)
@@ -197,7 +271,7 @@ defmodule Expat.Macro do
         ast, acc -> {ast, acc}
       end)
 
-    acc
+    acc |> Stream.uniq_by(fn {a, _, _} -> a end) |> Enum.reverse
   end
 
   defp bind(pattern, binds) do
@@ -291,4 +365,13 @@ defmodule Expat.Macro do
     {name, _, _} = pattern |> pattern_head
     name
   end
+
+  defp bindable_names_in_pattern(pattern) do
+    pattern
+    |> ast_variables
+    |> Stream.filter(fn {_, m, _} -> m[:bindable]; _ -> false end)
+    |> Stream.map(fn {_, m, _} -> m[:bindable] end)
+    |> Enum.to_list
+  end
+
 end
