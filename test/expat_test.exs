@@ -48,5 +48,13 @@ defmodule Expat.ExpatTest do
     assert {3, {1, 2}} = t2(b: t2(a: 1, b: 2), a: 3)
   end
 
+  require Voting.Patterns
+  test "generated documentation for pattern macro" do
+    doc =
+      Code.get_docs(Voting.Patterns, :docs)
+      |> Enum.find_value(fn {{:adult, 2},_, _, _, doc} -> doc; _ -> nil end)
+    assert doc =~ ~R/Expands the `adult` pattern/
+  end
+
   import P, only: []
 end

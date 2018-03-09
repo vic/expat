@@ -20,9 +20,6 @@ defmodule Expat.ExpansionTest do
     assert ym[:counter] == gym[:counter]
   end
 
-  @tag :skip
-  test "once x is bound its inner can see the x binding"
-
   test "defpat expansion returns guarded pattern" do
     {:when, _, [pattern, guard]} = age_to_vote(_: [escape: true])
     assert {:n, m, _} = pattern
