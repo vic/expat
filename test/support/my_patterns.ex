@@ -8,13 +8,17 @@ end
 
 defmodule MyPatterns do
   use Expat
-  defpat ok    {:ok, result}
-  defpat error {:error, reason}
+  defpat ok({:ok, result})
+  defpat error({:error, reason})
 
   defpat mexican(%Person{name: name, country: "MX"})
 
-  defpat mexican_parrot(%Pet{kind: :parrot, name: name,  age: age,
-                                owner: mexican(name: owner_name)})
+  defpat mexican_parrot(%Pet{
+           kind: :parrot,
+           name: name,
+           age: age,
+           owner: mexican(name: owner_name)
+         })
 end
 
 defmodule Voting.Patterns do
@@ -36,4 +40,6 @@ defmodule Voting do
   expat def adult_can_vote?(mexican() = adult()) do
     true
   end
+
+  import Voting.Patterns, only: []
 end

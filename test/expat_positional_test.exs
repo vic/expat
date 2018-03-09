@@ -21,6 +21,7 @@ defmodule Expat.PoisitionalTest do
   """
 
   defpat one(1)
+
   test "one expands to inner expression" do
     assert 1 = one()
   end

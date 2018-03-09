@@ -46,8 +46,8 @@ defmodule Expat.ExpansionTest do
   test "meta variable used in guard is bound" do
     q =
       quote do
-      assert age_to_vote(n: x) = 20
-    end
+        assert age_to_vote(n: x) = 20
+      end
 
     bound = [{{:x, __MODULE__}, 20}]
     assert {20, ^bound} = Code.eval_quoted(q, [], __ENV__)
@@ -58,6 +58,4 @@ defmodule Expat.ExpansionTest do
     assert {:=, _, [{:v, _, _}, {:n, _, _}]} = pattern
     assert {:>=, _, [{:n, _, _}, 18]} = guard
   end
-
-
 end

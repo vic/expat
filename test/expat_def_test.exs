@@ -36,5 +36,4 @@ defmodule Expat.DefTest do
   test "expat def inner anon function" do
     assert :voted == anon().(20)
   end
-
 end

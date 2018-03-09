@@ -21,7 +21,7 @@ defmodule Expat.NamedTest do
     assert 3 == c
   end
 
-  #test "generated macro with guards can be used in case clause" do
+  # test "generated macro with guards can be used in case clause" do
   #  value =
   #    expat case(20) do
   #            age_to_vote(n: x) -> {:voted, x}
@@ -29,14 +29,14 @@ defmodule Expat.NamedTest do
   #          end
 
   #  assert {:voted, 20} = value
-  #end
+  # end
 
-  #test "generated macro with guards can be used in with clause" do
+  # test "generated macro with guards can be used in with clause" do
   #  value =
   #    expat with age_to_vote(n: x) <- 20 do
   #            {:voted, x}
   #          end
 
   #  assert {:voted, 20} = value
-  #end
+  # end
 end

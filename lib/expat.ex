@@ -1,6 +1,6 @@
 defmodule Expat do
   @readme File.read!(Path.expand("../README.md", __DIR__))
-  @external_resource  @readme
+  @external_resource @readme
   @moduledoc @readme
 
   @doc ~S"""
