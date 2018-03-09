@@ -124,7 +124,18 @@ defmodule Expat.Macro do
     result = (guard && {:when, [context: Elixir], [value, guard]}) || value
     result = result |> set_expansion_counter(:erlang.unique_integer([:positive]))
 
-    (expat_opts[:escape] && Macro.escape(result)) || result
+    cond do
+      expat_opts[:escape] -> Macro.escape(result)
+      expat_opts[:build] && guard ->
+        quote do
+          fn ->
+            case unquote(value) do
+              x when unquote(guard) -> x
+            end
+          end.()
+        end
+      :else -> result
+    end
   end
 
   def expand_inside(expr, opts) do
