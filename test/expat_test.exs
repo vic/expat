@@ -35,6 +35,15 @@ defmodule Expat.Test do
     assert {:voted, 20} = value
   end
 
+  test "generated macro with guards can be used in with clause" do
+    value =
+      expat with age_to_vote(n: x) <- 20 do
+              {:voted, x}
+            end
+
+    assert {:voted, 20} = value
+  end
+
   test "pattern variables do not overwrite those in scope" do
     n = 1
     assert age_to_vote(n: x) = 20

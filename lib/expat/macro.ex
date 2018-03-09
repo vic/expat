@@ -75,6 +75,17 @@ defmodule Expat.Macro do
     {:case, c, [v, [do: clauses]]}
   end
 
+  defp do_expand_inside({:with, c, clauses}, opts) do
+    clauses =
+      clauses
+      |> Enum.map(fn
+        {:<-, a, [p, e]} ->
+          {:<-, a, [expand_calls_inside(p, opts), e]}
+        x -> x
+       end)
+    {:with, c, clauses}
+  end
+
   defp do_expand_inside(ast, _opts), do: ast
 
   defp expand_args_collecting_guard(args, guard, opts) do
