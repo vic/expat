@@ -7,5 +7,5 @@ defmodule Expat.ReadmeTest do
 
   require Voting
 
-  doctest Expat
+  doctest Expat.Readme
 end

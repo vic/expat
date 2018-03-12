@@ -1,28 +1,14 @@
 defmodule Expat do
-  @readme File.read!(Path.expand("../README.md", __DIR__))
-  @external_resource @readme
-  @moduledoc @readme
 
-  @doc ~S"""
-  Imports `defpat` and `expat` into scope.
+  @moduledoc ~S"""
+  Pattern Matching as Macros
 
       use Expat
 
-
-  Since named patterns are just macros, they must
-  be required and in scope at compile for using them.
-  For this reason, the following syntax can be used
-  to automatically require MyPatterns and import a list
-  of named patterns from it.
-
-      use Expat, import: {MyPatterns, [:age_to_vote]}
-
-  This has the advantage of importing Expat and requiring
-  the module (because we are going to use their macros) and
-  importing just the given named patterns, because all the
-  generated pattern macros have the same arity, they can be
-  imported in a single step.
+  This will import `defpat` and `expat` into scope.
   """
+
+  @doc false
   defmacro __using__([]) do
     quote do
       import Expat
