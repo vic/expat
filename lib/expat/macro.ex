@@ -309,7 +309,11 @@ defmodule Expat.Macro do
   defp mark_bindable(pattern) do
     Macro.prewalk(pattern, fn
       {a, m, c} when is_atom(a) and is_atom(c) ->
-        {a, [bindable: a] ++ m, c}
+        if to_string(a) =~ ~r/^_/ do
+          {a, m, c}
+        else
+          {a, [bindable: a] ++ m, c}
+        end
 
       x ->
         x

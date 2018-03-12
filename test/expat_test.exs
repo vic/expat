@@ -7,6 +7,8 @@ defmodule Expat.ExpatTest.Patterns do
   defpat t2({a, b})
   defpat call({atom(name), list(meta), list(args)})
   defpat var({atom(name), list(meta), atom(context)})
+
+  defpat u(_u = 1)
 end
 
 defmodule Expat.ExpatTest do
@@ -46,6 +48,10 @@ defmodule Expat.ExpatTest do
 
   test "can use t2 as constructor with named vars" do
     assert {3, {1, 2}} = t2(b: t2(a: 1, b: 2), a: 3)
+  end
+
+  test "variables starting with _ cannot be bound" do
+    assert 1 == u(_u: 2)
   end
 
   require Voting.Patterns
