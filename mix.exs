@@ -4,7 +4,7 @@ defmodule Expat.MixProject do
   def project do
     [
       app: :expat,
-      version: "1.0.2",
+      version: "1.0.3",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       name: "Expat",
