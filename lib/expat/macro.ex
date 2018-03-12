@@ -63,7 +63,7 @@ defmodule Expat.Macro do
 
     For example:
 
-        #{name}(#{Enum.join(arg_names, ", ")}, named_binds = [])
+        #{name}(#{Enum.join(arg_names, ", ")}, bindings = [])
 
     """
 
@@ -76,10 +76,17 @@ defmodule Expat.Macro do
         kw = Enum.zip([args, vars])
 
         quote do
-          @doc unquote(doc)
-          @spec unquote(name)(unquote_splicing(argt), named_binds :: keyword) :: any
-          unquote(defm)(unquote(name)(unquote_splicing(vars), named_binds)) do
-            opts = named_binds
+          @doc """
+          Expands the `#{unquote(name)}` pattern.
+
+              #{unquote(code)}
+
+          See `#{unquote(name)}/0`.
+          """
+          @spec unquote(name)(unquote_splicing(argt), bindings :: keyword) :: any
+          unquote(defm)(unquote(name)(unquote_splicing(vars), bindings))
+
+          unquote(defm)(unquote(name)(unquote_splicing(vars), opts)) do
             opts = (Keyword.keyword?(opts) && opts) || [{unquote(last), opts}]
             opts = unquote(kw) ++ opts ++ unquote(opts)
             Expat.Macro.expand(unquote(escaped), opts)
@@ -95,7 +102,30 @@ defmodule Expat.Macro do
         end
       end
 
-    defs = [zero] ++ defs
+    bang =
+      fn ->
+        vars = arg_names |> Enum.map(&Macro.var(&1, __MODULE__))
+        argt = arg_names |> Enum.map(fn _ -> quote do: any end)
+        kw = Enum.zip([arg_names, vars])
+        bang = :"#{name}!"
+
+        quote do
+          @doc """
+          Builds data using the `#{unquote(name)}` pattern.
+
+              #{unquote(code)}
+
+          See `#{unquote(name)}/0`.
+          """
+          @spec unquote(bang)(unquote_splicing(argt)) :: any
+          unquote(defm)(unquote(bang)(unquote_splicing(vars))) do
+            opts = unquote(kw) ++ [_: [build: true]] ++ unquote(opts)
+            Expat.Macro.expand(unquote(escaped), opts)
+          end
+        end
+      end.()
+
+    defs = [bang, zero] ++ defs
     {:__block__, [], defs}
   end
 

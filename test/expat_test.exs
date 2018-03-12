@@ -54,6 +54,10 @@ defmodule Expat.ExpatTest do
     assert 1 == u(_u: 2)
   end
 
+  test "bang macro can be used to build data with guards" do
+    assert :hello = atom!(:hello)
+  end
+
   require Voting.Patterns
   test "generated documentation for pattern macro" do
     doc =
