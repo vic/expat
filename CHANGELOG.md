@@ -2,18 +2,18 @@
 
 ## v1.0.3
 
-### Enhancements
+##### Enhancements
 
   * Add HOW_IT_WORKS.md to add some details on how guards are expanded.
   * Add bang `!` macro for named pattern that can be used as constructor.
   
-### Bug Fixes
+##### Bug Fixes
 
   * Pattern variables starting with `_` were able to be bound.
 
 ## v1.0.2
 
-### Enhancements
+##### Enhancements
 
   * Allow positional arguments in adition to named bindings.
   * Document generated macros
@@ -22,23 +22,23 @@
   
 ## v1.0.1
 
-### Enhancements
+##### Enhancements
 
   * Added a usage guide in README.md
 
-### Bug Fixes
+##### Bug Fixes
 
   * Ensure pattern expassion happens in all arguments of a `def`
 
 
 ## v1.0.0
 
-### Enhancements
+##### Enhancements
 
   * Major rewrite to let `defpat` support guards being defined on it
   * Introduced `expat` to expand patterns inside Elixir expressions
   
-### Deprecations
+##### Deprecations
 
   * Removed the `...` syntax that introduced all pattern variables into scope.
     Now you must be explicit on what variables you want to bind.
