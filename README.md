@@ -208,9 +208,8 @@ be expanded correctly within it.
 For example, the previous module could be written like:
 
 ```elixir
-          # Since expat works at compile time, it and your pattern
-          # macros need to be available if you want to expand them.
-          use Expat, import: {Voting.Patterns, [:mexican, :adult]}
+          use Expat
+          import Voting.Patterns
 
           expat defmodule Voting do
 
@@ -220,6 +219,10 @@ For example, the previous module could be written like:
             def can_vote?(mexican() = adult()), do: true
             def can_vote?(_), do: false
           end
+          
+          # Un-import since its pattern macros
+          # were used only during compilation.
+          import Voting.Patterns, only: []
 ```
 
 Be sure to read the [documentation](https://hexdocs.pm/expat) and look at some of the [tests](https://github.com/vic/expat/tree/master/test).
