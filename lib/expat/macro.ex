@@ -18,112 +18,10 @@ defmodule Expat.Macro do
       end
 
     arg_names = bindable_names_in_ast(bindable)
-    arities = 0..length(arg_names)
 
-    value = pattern |> pattern_value
-    guard = pattern |> pattern_guard
-
-    code =
-      cond do
-        guard -> {:when, [], [value, guard]}
-        true -> value
-      end
-      |> Macro.to_string()
-
-    first_name = arg_names |> List.first()
-
-    doc = """
-    Expands the `#{name}` pattern.
-
-        #{code}
-
-
-    ## Binding Variables
-
-    The following variables can be bound by giving them
-    to `#{name}` as keys on its last argument Keyword.
-
-        #{arg_names |> Enum.map(&":#{&1}") |> Enum.join(", ")}
-
-    For example:
-
-        #{name}(#{first_name}: x)
-
-    Where `x` can be any value, variable in your scope
-    or another pattern expansion.
-    Not mentioned variables will be unbound and replaced by
-    an `_` at expansion site.
-    Likewise, calling `#{name}()` with no argumens will
-    replace all its variables with `_`.
-
-    ## Positional Variables
-
-    `#{name}` variables can also be bound by position,
-    provided the last them is not a Keyword.
-
-    For example:
-
-        #{name}(#{Enum.join(arg_names, ", ")}, bindings = [])
-
-    """
-
-    defs =
-      Enum.map(arities, fn n ->
-        args = arg_names |> Enum.take(n)
-        last = arg_names |> Enum.at(n)
-        vars = args |> Enum.map(&Macro.var(&1, __MODULE__))
-        argt = args |> Enum.map(fn _ -> quote do: any end)
-        kw = Enum.zip([args, vars])
-
-        quote do
-          @doc """
-          Expands the `#{unquote(name)}` pattern.
-
-              #{unquote(code)}
-
-          See `#{unquote(name)}/0`.
-          """
-          @spec unquote(name)(unquote_splicing(argt), bindings :: keyword) :: any
-          unquote(defm)(unquote(name)(unquote_splicing(vars), bindings))
-
-          unquote(defm)(unquote(name)(unquote_splicing(vars), opts)) do
-            opts = (Keyword.keyword?(opts) && opts) || [{unquote(last), opts}]
-            opts = unquote(kw) ++ opts ++ unquote(opts)
-            Expat.Macro.expand(unquote(escaped), opts)
-          end
-        end
-      end)
-
-    zero =
-      quote do
-        @doc unquote(doc)
-        unquote(defm)(unquote(name)()) do
-          Expat.Macro.expand(unquote(escaped), unquote(opts))
-        end
-      end
-
-    bang =
-      fn ->
-        vars = arg_names |> Enum.map(&Macro.var(&1, __MODULE__))
-        argt = arg_names |> Enum.map(fn _ -> quote do: any end)
-        kw = Enum.zip([arg_names, vars])
-        bang = :"#{name}!"
-
-        quote do
-          @doc """
-          Builds data using the `#{unquote(name)}` pattern.
-
-              #{unquote(code)}
-
-          See `#{unquote(name)}/0`.
-          """
-          @spec unquote(bang)(unquote_splicing(argt)) :: any
-          unquote(defm)(unquote(bang)(unquote_splicing(vars))) do
-            opts = unquote(kw) ++ [_: [build: true]] ++ unquote(opts)
-            Expat.Macro.expand(unquote(escaped), opts)
-          end
-        end
-      end.()
+    defs = pattern_defs(defm, name, escaped, arg_names, opts)
+    zero = pattern_zero(defm, name, pattern, escaped, arg_names, opts)
+    bang = pattern_bang(defm, name, escaped, arg_names, opts)
 
     defs = [bang, zero] ++ defs
     {:__block__, [], defs}
@@ -498,4 +396,112 @@ defmodule Expat.Macro do
         x
     end)
   end
+
+  defp pattern_bang(defm, name, escaped, arg_names, opts) do
+    vars = arg_names |> Enum.map(&Macro.var(&1, __MODULE__))
+    argt = arg_names |> Enum.map(fn _ -> quote do: any end)
+    kw = Enum.zip([arg_names, vars])
+    bang = :"#{name}!"
+
+    quote do
+      @doc """
+      Builds data using the `#{unquote(name)}` pattern.
+
+      See `#{unquote(name)}/0`.
+      """
+      @spec unquote(bang)(unquote_splicing(argt)) :: any
+      unquote(defm)(unquote(bang)(unquote_splicing(vars))) do
+        opts = unquote(kw) ++ [_: [build: true]] ++ unquote(opts)
+        Expat.Macro.expand(unquote(escaped), opts)
+      end
+    end
+  end
+
+  defp pattern_zero(defm, name, pattern, escaped, arg_names, opts) do
+    doc = pattern_zero_doc(name, pattern, arg_names)
+    quote do
+      @doc unquote(doc)
+      unquote(defm)(unquote(name)()) do
+        Expat.Macro.expand(unquote(escaped), unquote(opts))
+      end
+    end
+  end
+
+  defp pattern_zero_doc(name, pattern, arg_names) do
+    value = pattern |> pattern_value
+    guard = pattern |> pattern_guard
+
+    code =
+      cond do
+        guard -> {:when, [], [value, guard]}
+        true -> value
+    end
+    |> Macro.to_string()
+
+    first_name = arg_names |> List.first()
+
+    """
+    Expands the `#{name}` pattern.
+
+        #{code}
+
+
+    ## Binding Variables
+
+    The following variables can be bound by giving them
+    to `#{name}` as keys on its last argument Keyword.
+
+        #{arg_names |> Enum.map(&":#{&1}") |> Enum.join(", ")}
+
+    For example:
+
+        #{name}(#{first_name}: x)
+
+    Where `x` can be any value, variable in your scope
+    or another pattern expansion.
+    Not mentioned variables will be unbound and replaced by
+    an `_` at expansion site.
+    Likewise, calling `#{name}()` with no argumens will
+    replace all its variables with `_`.
+
+    ## Positional Variables
+
+    `#{name}` variables can also be bound by position,
+    provided the last them is not a Keyword.
+
+    For example:
+
+        #{name}(#{Enum.join(arg_names, ", ")}, bindings = [])
+
+    """
+  end
+
+  defp pattern_defs(defm, name, escaped, arg_names, opts) do
+    arities = 0..length(arg_names)
+    Enum.map(arities, fn n ->
+      args = arg_names |> Enum.take(n)
+      last = arg_names |> Enum.at(n)
+      vars = args |> Enum.map(&Macro.var(&1, __MODULE__))
+      argt = args |> Enum.map(fn _ -> quote do: any end)
+      kw = Enum.zip([args, vars])
+
+      quote do
+        @doc """
+        Expands the `#{unquote(name)}` pattern.
+
+        See `#{unquote(name)}/0`.
+        """
+        @spec unquote(name)(unquote_splicing(argt), bindings :: keyword) :: any
+        unquote(defm)(unquote(name)(unquote_splicing(vars), bindings))
+
+        unquote(defm)(unquote(name)(unquote_splicing(vars), opts)) do
+          opts = (Keyword.keyword?(opts) && opts) || [{unquote(last), opts}]
+          opts = unquote(kw) ++ opts ++ unquote(opts)
+          Expat.Macro.expand(unquote(escaped), opts)
+        end
+      end
+    end)
+  end
+
+
 end
