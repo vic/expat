@@ -6,6 +6,10 @@
   
   * Add tagged unions
   * Report lines at expansion point not as pattern definition line.
+  
+##### Bug Fixes
+
+  * nil values were not able to be bound.
 
 ## v1.0.3
 

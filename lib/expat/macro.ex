@@ -258,18 +258,18 @@ defmodule Expat.Macro do
         x
 
       {a, m = [{:bindable, b} | _], c} ->
-        case binds[b] do
+        case List.keyfind(binds, b, 0) do
           nil ->
             {a, m, c}
 
-          var = {vn, vm, vc} ->
+          {_, var = {vn, vm, vc}} ->
             if m[:underable] do
               {vn, [bound: b] ++ vm, vc}
             else
               {:=, [bound: b], [var, {a, [bound: b] ++ m, c}]}
             end
 
-          expr ->
+          {_, expr} ->
             {:=, [bound: b], [{a, [bound: b] ++ m, c}, expr]}
         end
 
