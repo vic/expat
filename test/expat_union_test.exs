@@ -22,8 +22,8 @@ defmodule Expat.UnionTest do
       defpat bar(foo(:hello))
       defpat baz(foo(:world))
 
-  Note that when the head pattern has no arguments, by default it constructs
-  a tagged tuple with its name, in this case `{:foo, x}`.
+  Note that when the head pattern has no arguments, by default it creates
+  a tagged tuple with its name. In this example: `{:foo, x}`.
 
   Calling any of the tail patterns will just pass arguments into the
   head pattern.
@@ -31,7 +31,26 @@ defmodule Expat.UnionTest do
   See also:
     expat_nat_test.exs
     expat_maybe_test.exs
+    expat_either_test.exs
+
   """
 
+  defmodule Person do
+    defstruct [:mood]
+  end
+
+  defpat person_in_mood(%Person{mood: mood})
+  | sad_person(:sad)
+  | happy_person(:happy)
+
+  test "sad yields a person" do
+    assert %Person{mood: :sad} = sad_person()
+  end
+
+  test "happy can be used to match" do
+    expat case %Person{mood: :happy} do
+            happy_person() -> assert :party
+          end
+  end
 
 end
