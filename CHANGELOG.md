@@ -5,6 +5,7 @@
 ##### Enhancements
   
   * Add tagged unions
+  * Report lines at expansion point not as pattern definition line.
 
 ## v1.0.3
 

@@ -41,7 +41,7 @@ defmodule Expat.Macro do
     {value, guard} = expand_arg_collecting_guard(value, guard, opts)
 
     result = (guard && {:when, [context: Elixir], [value, guard]}) || value
-    result = result |> set_expansion_counter(:erlang.unique_integer([:positive]))
+    result = result |> remove_line |> set_expansion_counter(:erlang.unique_integer([:positive]))
 
     cond do
       expat_opts[:escape] -> Macro.escape(result)
@@ -372,6 +372,10 @@ defmodule Expat.Macro do
   defp show(ast) do
     IO.puts(Macro.to_string(ast))
     ast
+  end
+
+  defp remove_line(ast) do
+    Macro.postwalk(ast, &Macro.update_meta(&1, fn x -> Keyword.delete(x, :line) end))
   end
 
   defp set_expansion_counter(ast, counter) do
