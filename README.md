@@ -263,6 +263,7 @@ For some examples, see:
 - [Natural numbers](https://github.com/vic/expat/tree/master/test/expat_nat_test.exs).
 - [Maybe](https://github.com/vic/expat/tree/master/test/expat_maybe_test.exs).
 - [Either](https://github.com/vic/expat/tree/master/test/expat_either_test.exs).
+- [Result](https://github.com/vic/expat/tree/master/test/expat_result_test.exs).
 - [Union on Struct](https://github.com/vic/expat/tree/master/test/expat_union_test.exs).
 
 

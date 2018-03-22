@@ -197,7 +197,7 @@ defmodule Expat.Macro do
   @doc "Make underable variables an underscore to be ignored" && false
   defp make_under(pattern) do
     Macro.prewalk(pattern, fn
-      v = {_, m, _} ->
+      v = {n, m, _} ->
         (m[:underable] && {:_, [], nil}) || v
 
       x ->
@@ -267,7 +267,7 @@ defmodule Expat.Macro do
           nil ->
             {a, m, c}
 
-          {_, var = {vn, vm, vc}} ->
+          {_, var = {vn, vm, vc}} when is_atom(vn) and is_atom(vc) ->
             if m[:underable] do
               {vn, [bound: b] ++ vm, vc}
             else
@@ -275,7 +275,11 @@ defmodule Expat.Macro do
             end
 
           {_, expr} ->
-            {:=, [bound: b], [{a, [bound: b] ++ m, c}, expr]}
+            if m[:underable] do
+              expr
+            else
+              {:=, [bound: b], [{a, [bound: b] ++ m, c}, expr]}
+            end
         end
 
       x ->

@@ -32,6 +32,7 @@ defmodule Expat.UnionTest do
     expat_nat_test.exs
     expat_maybe_test.exs
     expat_either_test.exs
+    expat_result_test.exs
 
   """
 

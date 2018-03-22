@@ -1,10 +1,20 @@
 # Changelog
 
+## v1.0.5
+
+##### Enhancements
+
+  * Add `Result` type example in tests.
+
+##### Bug Fixes
+
+  * Binding non guarded variables to expressions just replaces those vars.
+
 ## v1.0.4
 
 ##### Enhancements
   
-  * Add pattern unions with examples for `nats`, `maybe`, `either` and struct.
+  * Add union patterns with examples for `nats`, `maybe`, `either`, struct.
   * Report lines at expansion point not as pattern definition line.
   
 ##### Bug Fixes
