@@ -358,10 +358,10 @@ defmodule Expat.Macro do
 
   defp meta_in_ast(ast, key) do
     {_, acc} =
-      Macro.traverse(ast, [], fn x, y -> {x, y} end, fn
+      Macro.traverse(ast, [], fn
         ast = {_, m, _}, acc -> (m[key] && {ast, [m[key]] ++ acc}) || {ast, acc}
         ast, acc -> {ast, acc}
-      end)
+      end, fn x, y -> {x, y} end)
 
     acc |> Stream.uniq() |> Enum.reverse()
   end
@@ -529,7 +529,7 @@ defmodule Expat.Macro do
       [_: [env: __CALLER__, name: unquote(name)]]
     end
 
-    arg_names = bindable_names_in_ast(bindable)
+    arg_names = bindable |> pattern_args |> bindable_names_in_ast
 
     defs = pattern_defs(defm, name, escaped, arg_names, opts)
     zero = pattern_zero(defm, name, pattern, escaped, arg_names, opts)
