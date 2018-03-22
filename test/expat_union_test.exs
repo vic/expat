@@ -3,30 +3,34 @@ defmodule Expat.UnionTest do
   use Expat
 
   @moduledoc ~S"""
-  Tagged union test.
+  Expat Unions.
 
-  Pattern unions in Expat.
+  Expat has an special syntax for defining pattern
+  unions:
 
-  The following example
+      defpat head_pattern | tail_patterns
 
-  defpat foo
-  | bar(1)
-  | baz(2)
+  The following example (see expat_nat_test.exs)
 
-  is shorthand for:
+      defpat foo
+      | bar(:hello)
+      | baz(:world)
 
-  defpat foo({:foo, x})
-  defpat bar(foo(1))
-  defpat baz(foo(2))
+  is just a syntax sugar for:
 
-  Note that when the first pattern has no arguments, it by default constructs
-  a tagged tuple with its name, like in this case `{:foo, x}`.
+      defpat foo({:foo, x})
+      defpat bar(foo(:hello))
+      defpat baz(foo(:world))
 
-  Thus, calling `bar` or `baz` will just expand the `foo` pattern itself with
-  some arguments.
+  Note that when the head pattern has no arguments, by default it constructs
+  a tagged tuple with its name, in this case `{:foo, x}`.
+
+  Calling any of the tail patterns will just pass arguments into the
+  head pattern.
 
   See also:
-    expat_nat_test.
+    expat_nat_test.exs
+    expat_maybe_test.exs
   """
 
 

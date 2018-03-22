@@ -11,8 +11,8 @@ defmodule Expat.NatTest do
      defpat zero(nat(0))
      defpat succ(nat(nat() = n))
 
-  Note that both `zero` and `succ` are just using
-  `nat`. Thus `zero()` builds `{:nat, 0}` and
+  Note that both `zero` and `succ` are just using calling
+  `nat` with some other pattern. Thus `zero()` builds `{:nat, 0}` and
   `succ` takes a single argument `n` which must itself be also a `nat()`
 
   See also expat_union_test.exs

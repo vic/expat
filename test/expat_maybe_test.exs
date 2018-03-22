@@ -19,11 +19,11 @@ defmodule Expat.MaybeTest do
   | ( just(y) when not is_nil(y) )
 
   test "nothing is nil" do
-    assert nil == nothing!()
+    assert nil == nothing()
   end
 
   test "just is non nil" do
-    assert 22 = just!(22)
+    assert 23 = just!(23)
   end
 
   test "just can be pattern matched" do
@@ -31,7 +31,7 @@ defmodule Expat.MaybeTest do
   end
 
   test "nil cannot be pattern matched with just" do
-    expat case nil do
+    expat case Keyword.get([], :foo) do
       just() -> raise "Should not happen"
       nothing() -> assert :ok
     end
