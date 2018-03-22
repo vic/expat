@@ -44,4 +44,12 @@ defmodule Expat.NatTest do
     assert {:nat, {:nat, 0}} = succ(zero())
   end
 
+  def to_i(zero()), do: 0
+  def to_i(succ(n)), do: 1 + to_i(n)
+
+  test "convert a nat to int" do
+    assert 3 = zero() |> succ |> succ |> succ |> to_i
+  end
+
+
 end
