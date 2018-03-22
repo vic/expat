@@ -30,6 +30,11 @@ defmodule Expat.MaybeTest do
     assert just() = :jordan
   end
 
+  test "just can be pattern matched and extract" do
+    assert just(j) = :jordan
+    assert j == :jordan
+  end
+
   test "nil cannot be pattern matched with just" do
     expat case Keyword.get([], :foo) do
       just() -> raise "Should not happen"
