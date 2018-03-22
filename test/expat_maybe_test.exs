@@ -7,6 +7,10 @@ defmodule Expat.MaybeTest do
 
   Any non-nil value is an instance of Just.
 
+  On the tests bellow notice that since the `just`
+  pattern has a guard, we are using the `just!` constructor
+  to create data from it and make sure the guard is satisfied.
+
   See also: expat_union_test.exs
   """
 
