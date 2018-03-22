@@ -402,7 +402,7 @@ defmodule Expat.Macro do
 
   defp pattern_bang(defm, name, escaped, arg_names, opts) do
     vars = arg_names |> Enum.map(&Macro.var(&1, __MODULE__))
-    argt = arg_names |> Enum.map(fn _ -> quote do: any end)
+    argt = vars |> Enum.map(fn name -> quote do: unquote(name) :: any end)
     kw = Enum.zip([arg_names, vars])
     bang = :"#{name}!"
 
@@ -476,6 +476,19 @@ defmodule Expat.Macro do
 
         #{name}(#{Enum.join(arg_names, ", ")}, bindings = [])
 
+
+    ## Bang Constructor
+
+    The `#{name}!` constructor can be used to build data and
+    make sure the guards are satisfied.
+
+    Note that this macro can only be used as an expression
+    and not as a matching pattern.
+
+    For example:
+
+        #{name}!(#{Enum.join(arg_names, ", ")})
+
     """
   end
 
@@ -485,7 +498,7 @@ defmodule Expat.Macro do
       args = arg_names |> Enum.take(n)
       last = arg_names |> Enum.at(n)
       vars = args |> Enum.map(&Macro.var(&1, __MODULE__))
-      argt = args |> Enum.map(fn _ -> quote do: any end)
+      argt = vars |> Enum.map(fn name -> quote do: unquote(name) :: any end)
       kw = Enum.zip([args, vars])
 
       quote do
