@@ -225,7 +225,57 @@ For example, the previous module could be written like:
           import Voting.Patterns, only: []
 ```
 
-Be sure to read the [documentation](https://hexdocs.pm/expat) and look at some of the [tests](https://github.com/vic/expat/tree/master/test).
+
+### Guarded data constructors
+
+As mentioned previously, if you expand a pattern and bind all of it's inner
+variables (provided the pattern was not defined with any `_` var), then you
+are effectively just building data from it.
+
+However, for patterns that include guards (or those expanding inner patterns
+including guards), an special bang function can be used to build data and make
+sure the guards are satisfied. 
+
+Bang constructors are positional, that means variables are bound in the order
+they appear on your named pattern.
+
+For example, for our previous `adult` pattern:
+
+```elixir
+    defpat adult(%{age: age}) when is_integer(age) and age >= 18
+```
+
+The `adult!(age)` constructor will be generated.
+
+See [HOW_IT_WORKS](https://github.com/vic/expat/tree/master/HOW_IT_WORKS.md)
+for more info on how guards are expanded within Expat.
+
+### Union Patterns
+
+This is an Expat feature that lets you compose many named patterns into a single
+*union* pattern. They are explained best with code, see bellow.
+
+Using unions, you can emulate things like
+[Algebraic data types](https://en.wikipedia.org/wiki/Algebraic_data_type)
+
+For some examples, see:
+
+- [Natural numbers](https://github.com/vic/expat/tree/master/test/expat_nat_test.exs).
+- [Maybe](https://github.com/vic/expat/tree/master/test/expat_maybe_test.exs).
+- [Either](https://github.com/vic/expat/tree/master/test/expat_either_test.exs).
+- [Union on Struct](https://github.com/vic/expat/tree/master/test/expat_union_test.exs).
+
+
+### Documentation
+
+Your named pattern macros will be generated with documentation about what variables
+they take and what they will expand to. If you are in IEx, be sure to checkout their
+documentation using something like: `h Voting.Patterns.adult`
+
+Also, be sure to read the [documentation](https://hexdocs.pm/expat), and checkout some
+of the [tests](https://github.com/vic/expat/tree/master/test/).
+
+Happy Pattern Matching!
 
 ## Installation
 
