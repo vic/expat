@@ -4,13 +4,14 @@
 
 ##### Enhancements
   
-  * Add tagged unions
+  * Add pattern unions with examples for `nats`, `maybe`, `either` and struct.
   * Report lines at expansion point not as pattern definition line.
   
 ##### Bug Fixes
 
   * nil values were not able to be bound.
   * vars should be made unique on each expansion.
+  * guarded vars were being counted first
 
 ## v1.0.3
 
