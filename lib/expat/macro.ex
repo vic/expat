@@ -7,25 +7,16 @@ defmodule Expat.Macro do
 
   @doc "Defines a named pattern"
   @spec define_pattern(defm :: :defmacro | :defmacrop, E.pattern()) :: E.pattern()
-  def define_pattern(defm, pattern) do
-    name = pattern_name(pattern)
-    bindable = pattern |> mark_non_guarded |> mark_bindable
-    escaped = bindable |> Macro.escape()
+  def define_pattern(defm, pattern)
 
-    opts =
-      quote do
-        [_: [env: __CALLER__, name: unquote(name)]]
-      end
-
-    arg_names = bindable_names_in_ast(bindable)
-
-    defs = pattern_defs(defm, name, escaped, arg_names, opts)
-    zero = pattern_zero(defm, name, pattern, escaped, arg_names, opts)
-    bang = pattern_bang(defm, name, escaped, arg_names, opts)
-
-    defs = [bang, zero] ++ defs
-    {:__block__, [], defs}
+  def define_pattern(defm, {:|, _, [head, alts]}) do
+    define_union_pattern(defm, union_head(head), collect_alts(alts))
   end
+
+  def define_pattern(defm, pattern) do
+    define_simple_pattern(defm, pattern)
+  end
+
 
   @doc "Expands a pattern"
   @spec expand(pattern :: E.pattern(), opts :: list) :: Macro.t()
@@ -501,6 +492,51 @@ defmodule Expat.Macro do
         end
       end
     end)
+  end
+
+  defp define_simple_pattern(defm, pattern) do
+    name = pattern_name(pattern)
+    bindable = pattern |> mark_non_guarded |> mark_bindable
+    escaped = bindable |> Macro.escape()
+
+    opts =
+      quote do
+      [_: [env: __CALLER__, name: unquote(name)]]
+    end
+
+    arg_names = bindable_names_in_ast(bindable)
+
+    defs = pattern_defs(defm, name, escaped, arg_names, opts)
+    zero = pattern_zero(defm, name, pattern, escaped, arg_names, opts)
+    bang = pattern_bang(defm, name, escaped, arg_names, opts)
+
+    defs = [bang, zero] ++ defs
+    {:__block__, [], defs}
+  end
+
+  defp collect_alts({:|, _, [a, b]}) do
+    [a | collect_alts(b)]
+  end
+
+  defp collect_alts(x) do
+    [x]
+  end
+
+  defp union_head({name, _, x}) when is_atom(name) and (is_atom(x) or [] == x) do
+    # foo({:foo, foo})
+    {name, [], [{name, {name, [], nil}}]}
+  end
+
+  defp union_head(head), do: head
+
+  defp define_union_pattern(defm, head, alts) do
+    head_name = pattern_name(head)
+    head_pats = define_simple_pattern(defm, head)
+    alts_pats = alts |> Enum.map(fn alt ->
+      alt = update_pattern_value(alt, fn expr -> {head_name, [], [expr]} end)
+      define_simple_pattern(defm, alt)
+    end)
+    {:__block__, [], [head_pats, alts_pats]}
   end
 
 

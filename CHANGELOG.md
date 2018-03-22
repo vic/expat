@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.4
+
+##### Enhancements
+  
+  * Add tagged unions
+
 ## v1.0.3
 
 ##### Enhancements
