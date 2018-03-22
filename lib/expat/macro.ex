@@ -545,7 +545,8 @@ defmodule Expat.Macro do
     head_name = pattern_name(head)
     head_pats = define_simple_pattern(defm, head)
     alts_pats = alts |> Enum.map(fn alt ->
-      alt = update_pattern_value(alt, fn expr -> {head_name, [], [expr]} end)
+      call = {head_name, [], pattern_args(alt)}
+      alt = update_pattern_args(alt, fn _ -> [call] end)
       define_simple_pattern(defm, alt)
     end)
     {:__block__, [], [head_pats, alts_pats]}
