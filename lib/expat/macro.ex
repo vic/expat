@@ -24,6 +24,9 @@ defmodule Expat.Macro do
     binds = Keyword.delete(opts, :_)
     expat_opts = Keyword.get_values(opts, :_) |> Enum.concat()
 
+    name = pattern_name(pattern)
+    counter = :erlang.unique_integer([:positive])
+    pattern = pattern |> remove_line |> set_expansion_counter(counter, name)
     guard = pattern_guard(pattern)
 
     value =
@@ -378,13 +381,16 @@ defmodule Expat.Macro do
     Macro.postwalk(ast, &Macro.update_meta(&1, fn x -> Keyword.delete(x, :line) end))
   end
 
-  defp set_expansion_counter(ast, counter) do
+  defp set_expansion_counter(ast, counter, pattern_name) do
     Macro.postwalk(ast, fn
-      {x, m, y} when is_atom(x) and is_atom(y) ->
-        if m[:bindable] && !m[:expat_counter] do
-          {x, [counter: counter, expat_counter: counter] ++ m, y}
-        else
-          {x, m, y}
+      s = {x, m, y} when is_atom(x) and is_atom(y) ->
+        cond do
+          match?("_" <> _, to_string(x)) ->
+            s
+          m[:bindable] && !m[:expat_pattern] ->
+            {x, m ++ [counter: counter, expat_pattern: pattern_name], y}
+          :else ->
+            s
         end
 
       x ->

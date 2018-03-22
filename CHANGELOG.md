@@ -10,6 +10,7 @@
 ##### Bug Fixes
 
   * nil values were not able to be bound.
+  * vars should be made unique on each expansion.
 
 ## v1.0.3
 

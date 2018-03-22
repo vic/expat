@@ -24,7 +24,7 @@ defmodule Expat.ExpansionTest do
     {:when, _, [pattern, guard]} = age_to_vote(_: [escape: true])
     assert {:n, m, _} = pattern
     assert m[:bindable] == :n
-    assert m[:expat_counter] == m[:counter]
+    assert m[:expat_pattern] == :age_to_vote
     assert {:>=, _, [{:n, g, _}, 18]} = guard
     assert g[:counter] == m[:counter]
   end
