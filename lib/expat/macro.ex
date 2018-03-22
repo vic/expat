@@ -197,7 +197,7 @@ defmodule Expat.Macro do
   @doc "Make underable variables an underscore to be ignored" && false
   defp make_under(pattern) do
     Macro.prewalk(pattern, fn
-      v = {n, m, _} ->
+      v = {_, m, _} ->
         (m[:underable] && {:_, [], nil}) || v
 
       x ->

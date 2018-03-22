@@ -61,4 +61,10 @@ defmodule Expat.ResultTest do
   end
 
 
+  test "error2 can be used to match and extract" do
+    expat case {:error, :enoent, "/file"} do
+            error2(:enoent, file) -> assert "/file" == file
+          end
+  end
+
 end
