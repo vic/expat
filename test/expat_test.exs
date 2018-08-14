@@ -59,6 +59,7 @@ defmodule Expat.ExpatTest do
   end
 
   require Voting.Patterns
+  @tag :skip
   test "generated documentation for pattern macro" do
     doc =
       Code.get_docs(Voting.Patterns, :docs)
